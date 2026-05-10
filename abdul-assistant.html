@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="EliteBot">
+<meta name="theme-color" content="#0a0e1a">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="logo_192.png">
+<title>EliteBot</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0a0e1a;--s1:#111827;--s2:#1a2235;
+  --acc:#4f8ef7;--acc2:#a78bfa;--gold:#f59e0b;
+  --tx:#e8eaf6;--muted:#6b7db3;--border:#1e2d4a;
+  --ok:#10b981;--err:#ef4444;
+}
+html,body{height:100%;overflow:hidden;}
+body{
+  background:var(--bg);color:var(--tx);
+  font-family:'Inter',sans-serif;
+  display:flex;flex-direction:column;
+  height:100dvh;direction:ltr;
+}
+
+/* ── API SCREEN ── */
+#api-scr{
+  position:fixed;inset:0;background:var(--bg);
+  z-index:999;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:28px 22px;gap:14px;
+}
+#api-scr img{width:90px;height:90px;border-radius:50%;object-fit:cover;}
+#api-scr h2{font-size:20px;font-weight:700;text-align:center;font-family:'Inter',sans-serif;line-height:1.5;}
+#api-scr p{font-size:13px;color:var(--muted);text-align:center;line-height:1.8;font-family:'Inter',sans-serif;}
+#api-scr a{color:var(--acc);}
+#api-inp{
+  width:100%;background:var(--s2);border:1.5px solid var(--border);
+  border-radius:12px;padding:13px 15px;color:var(--tx);
+  font-family:monospace;font-size:13px;outline:none;direction:ltr;
+}
+#api-inp:focus{border-color:var(--acc);}
+#api-btn{
+  width:100%;padding:14px;border:none;border-radius:12px;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  color:#fff;font-family:'Inter',sans-serif;font-size:16px;font-weight:700;cursor:pointer;
+}
+
+/* ── HEADER ── */
+header{
+  flex-shrink:0;display:flex;align-items:center;
+  justify-content:space-between;padding:10px 14px;
+  background:rgba(17,24,39,.95);border-bottom:1px solid var(--border);
+  z-index:10;direction:ltr;
+}
+.hd-left{display:flex;align-items:center;gap:9px;}
+.ava{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  overflow:hidden;position:relative;
+}
+.ava img{width:100%;height:100%;object-fit:cover;}
+.ava::after{
+  content:'';position:absolute;bottom:1px;right:1px;
+  width:8px;height:8px;border-radius:50%;
+  background:var(--ok);border:2px solid var(--s1);
+}
+.hd-info{text-align:left;}
+.hd-info h1{font-size:14px;font-weight:700;}
+.hd-info small{font-size:11px;color:var(--ok);}
+
+/* menu button */
+.menu-btn{
+  width:36px;height:36px;border-radius:50%;
+  border:1px solid var(--border);background:var(--s2);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:18px;color:var(--tx);
+}
+
+/* ── SIDE MENU ── */
+#side-menu{
+  position:fixed;top:0;right:0;bottom:0;width:75%;max-width:280px;
+  background:var(--s1);border-left:1px solid var(--border);
+  z-index:200;transform:translateX(100%);transition:transform .3s ease;
+  display:flex;flex-direction:column;padding:20px 16px;gap:8px;
+  overflow-y:auto;
+}
+#side-menu.open{transform:translateX(0);}
+#overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  z-index:199;display:none;
+}
+#overlay.show{display:block;}
+
+.menu-header{
+  display:flex;align-items:center;gap:10px;
+  padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:8px;
+}
+.menu-header img{width:48px;height:48px;border-radius:50%;object-fit:cover;}
+.menu-header h2{font-size:16px;font-weight:700;}
+.menu-header small{font-size:11px;color:var(--muted);}
+
+.menu-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;border-radius:12px;
+  cursor:pointer;transition:background .2s;
+  font-size:14px;font-weight:600;
+  border:none;background:none;color:var(--tx);
+  width:100%;text-align:right;
+}
+.menu-item:hover,.menu-item.active{background:var(--s2);}
+.menu-item span{font-size:20px;}
+
+.menu-divider{height:1px;background:var(--border);margin:8px 0;}
+
+.menu-key{
+  margin-top:auto;padding:12px 14px;
+  background:rgba(16,185,129,.08);border-radius:12px;
+  border:1px solid rgba(16,185,129,.15);
+}
+.menu-key p{font-size:11px;color:var(--ok);margin-bottom:6px;}
+.menu-key button{
+  font-size:12px;color:var(--muted);background:none;border:none;
+  cursor:pointer;text-decoration:underline;font-family:'Inter',sans-serif;
+}
+
+/* ── MAIN ── */
+main{flex:1;min-height:0;display:flex;overflow:hidden;}
+.pnl{flex-direction:column;width:100%;min-height:0;overflow:hidden;flex-shrink:0;display:none;}
+.pnl.on{display:flex;flex:1;}
+
+/* ── CHAT ── */
+#msgs{
+  flex:1;min-height:0;overflow-y:auto;
+  padding:14px;display:flex;flex-direction:column;gap:12px;
+}
+#msgs::-webkit-scrollbar{width:3px;}
+#msgs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* Welcome screen */
+#welcome{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:20px;gap:16px;
+}
+#welcome img{width:80px;height:80px;border-radius:50%;object-fit:cover;opacity:.9;}
+#welcome h2{
+  font-size:20px;font-weight:700;text-align:center;
+  font-family:'Inter',sans-serif;color:var(--tx);
+  line-height:1.5;
+}
+#welcome p{font-size:13px;color:var(--muted);text-align:center;font-family:'Inter',sans-serif;}
+
+.msg{display:flex;gap:7px;max-width:90%;animation:fi .25s ease;}
+.msg.u{align-self:flex-start;flex-direction:row-reverse;}
+.msg.a{align-self:flex-end;}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.mav{
+  width:28px;height:28px;border-radius:50%;flex-shrink:0;margin-top:2px;
+  display:flex;align-items:center;justify-content:center;font-size:12px;
+  overflow:hidden;
+}
+.mav img{width:100%;height:100%;object-fit:cover;}
+.msg.u .mav{background:linear-gradient(135deg,var(--acc),#3b82f6);}
+.mbbl{
+  padding:9px 13px;border-radius:13px;
+  font-size:14px;line-height:1.7;font-family:'Inter',sans-serif;
+}
+.msg.u .mbbl{background:#1e3a5f;border:1px solid rgba(79,142,247,.2);border-top-right-radius:3px;}
+.msg.a .mbbl{background:#161f32;border:1px solid var(--border);border-top-left-radius:3px;}
+.mtime{font-size:10px;color:var(--muted);margin-top:3px;text-align:center;font-family:'Inter',sans-serif;}
+
+#typ{display:none;align-self:flex-end;align-items:center;gap:7px;padding:6px 14px;flex-shrink:0;}
+#typ.on{display:flex;}
+.dots{background:#161f32;border:1px solid var(--border);border-radius:13px;border-top-left-radius:3px;padding:9px 13px;display:flex;gap:4px;align-items:center;}
+.dots span{width:6px;height:6px;background:var(--muted);border-radius:50%;animation:bo 1.2s infinite;}
+.dots span:nth-child(2){animation-delay:.2s;}
+.dots span:nth-child(3){animation-delay:.4s;}
+@keyframes bo{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+
+/* input row */
+#inp-row{
+  flex-shrink:0;display:flex;align-items:flex-end;gap:7px;
+  padding:10px 12px;background:rgba(17,24,39,.9);
+  border-top:1px solid var(--border);direction:ltr;
+}
+#mic-btn{
+  flex-shrink:0;width:40px;height:40px;border-radius:50%;
+  border:1.5px solid var(--border);background:var(--s2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;cursor:pointer;transition:all .2s;
+}
+#mic-btn.rec{border-color:var(--err);background:rgba(239,68,68,.15);animation:pm 1s infinite;}
+@keyframes pm{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.3)}50%{box-shadow:0 0 0 7px rgba(239,68,68,0)}}
+#cinp{
+  flex:1;background:var(--s2);border:1.5px solid var(--border);
+  border-radius:13px;padding:10px 13px;color:var(--tx);
+  font-family:'Inter',sans-serif;font-size:14px;
+  resize:none;outline:none;min-height:42px;max-height:100px;
+  direction:ltr;transition:border-color .2s;
+}
+#cinp:focus{border-color:var(--acc);}
+#cinp::placeholder{color:var(--muted);}
+#send-btn{
+  flex-shrink:0;width:40px;height:40px;border-radius:50%;border:none;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:transform .2s;
+}
+#send-btn:disabled{opacity:.5;cursor:not-allowed;}
+#send-btn:active{transform:scale(.92);}
+
+/* voice bar */
+#vbar{
+  flex-shrink:0;display:flex;align-items:center;gap:8px;
+  padding:5px 14px;background:rgba(17,24,39,.7);
+  border-top:1px solid var(--border);justify-content:flex-end;
+}
+#vbar span{font-size:11px;color:var(--muted);}
+#tts-btn{
+  padding:4px 10px;border-radius:18px;border:1px solid var(--border);
+  background:none;color:var(--muted);font-family:'Inter',sans-serif;
+  font-size:11px;cursor:pointer;transition:all .2s;
+}
+#tts-btn.on{border-color:var(--ok);color:var(--ok);background:rgba(16,185,129,.1);}
+
+/* ── TASKS ── */
+#tasks-pnl{padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;}
+.sec-ttl{font-size:17px;font-weight:700;display:flex;align-items:center;gap:7px;margin-bottom:4px;}
+.bdg{background:var(--acc);color:#fff;font-size:11px;padding:2px 7px;border-radius:10px;font-weight:700;}
+.add-row{display:flex;gap:7px;align-items:center;direction:ltr;}
+.add-inp{
+  flex:1;min-width:0;background:var(--s2);border:1.5px solid var(--border);
+  border-radius:11px;padding:9px 12px;color:var(--tx);
+  font-family:'Inter',sans-serif;font-size:14px;
+  outline:none;direction:ltr;
+}
+.add-inp:focus{border-color:var(--acc);}
+.add-inp::placeholder{color:var(--muted);}
+.add-btn{
+  flex-shrink:0;padding:9px 14px;border:none;border-radius:11px;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  color:#fff;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer;
+}
+.ti{
+  background:var(--s1);border:1px solid var(--border);border-radius:11px;
+  padding:11px 13px;display:flex;align-items:center;gap:9px;
+  animation:fi .25s ease;
+}
+.ti.done{opacity:.5;}
+.ti.done .tt{text-decoration:line-through;}
+.tck{
+  flex-shrink:0;width:22px;height:22px;border-radius:50%;
+  border:2px solid var(--border);background:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:12px;
+  transition:all .2s;
+}
+.ti.done .tck{background:var(--ok);border-color:var(--ok);color:#fff;}
+.tt{flex:1;font-size:14px;font-family:'Inter',sans-serif;line-height:1.5;}
+.tdel{
+  flex-shrink:0;width:26px;height:26px;border-radius:7px;border:none;
+  background:none;color:var(--muted);cursor:pointer;font-size:13px;
+  display:flex;align-items:center;justify-content:center;
+}
+.tdel:active{background:rgba(239,68,68,.15);color:var(--err);}
+.empty{text-align:center;padding:36px 16px;color:var(--muted);font-family:'Inter',sans-serif;}
+.empty .ei{font-size:36px;margin-bottom:8px;}
+
+/* ── NOTES ── */
+#notes-pnl{padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;}
+.ntitle{
+  width:100%;background:var(--s2);border:1.5px solid var(--border);
+  border-radius:11px;padding:9px 12px;color:var(--tx);
+  font-family:'Inter',sans-serif;font-size:14px;font-weight:700;
+  outline:none;direction:ltr;
+}
+.ntitle:focus{border-color:var(--gold);}
+.ntitle::placeholder{color:var(--muted);}
+#nbody{
+  width:100%;background:var(--s2);border:1.5px solid var(--border);
+  border-radius:11px;padding:12px;color:var(--tx);
+  font-family:'Inter',sans-serif;font-size:14px;
+  resize:none;outline:none;direction:ltr;line-height:1.8;min-height:100px;
+}
+#nbody:focus{border-color:var(--gold);}
+#nbody::placeholder{color:var(--muted);}
+.sn-btn{
+  width:100%;padding:11px;border:none;border-radius:11px;
+  background:linear-gradient(135deg,var(--gold),#f97316);
+  color:#fff;font-family:'Inter',sans-serif;font-size:15px;font-weight:700;cursor:pointer;
+}
+.nc{
+  background:var(--s1);border:1px solid var(--border);border-radius:11px;
+  padding:12px 13px;position:relative;animation:fi .25s ease;
+}
+.nc-ttl{font-size:13px;font-weight:700;color:var(--gold);margin-bottom:4px;}
+.nc-body{font-size:13px;color:var(--muted);font-family:'Inter',sans-serif;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.nc-del{position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:6px;border:none;background:none;color:var(--muted);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;}
+.nc-del:active{background:rgba(239,68,68,.15);color:var(--err);}
+.nc-date{font-size:10px;color:var(--muted);margin-top:5px;font-family:'Inter',sans-serif;}
+
+
+
+#attach-btn{
+  flex-shrink:0;width:40px;height:40px;border-radius:50%;
+  border:1.5px solid var(--border);background:var(--s2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;cursor:pointer;color:var(--tx);
+}
+#img-preview-chat{
+  display:none;flex-shrink:0;
+  padding:6px 12px;background:var(--s2);
+  border-top:1px solid var(--border);
+  align-items:center;gap:8px;
+}
+#img-preview-chat img{width:48px;height:48px;border-radius:8px;object-fit:cover;}
+#img-preview-chat span{font-size:12px;color:var(--muted);flex:1;}
+#img-preview-chat button{
+  background:none;border:none;color:var(--err);
+  cursor:pointer;font-size:16px;
+}
+
+
+/* ── REMINDERS ── */
+.task-time-row{display:flex;gap:8px;align-items:center;margin-top:8px;}
+.task-time-inp{
+  flex:1;background:var(--s2);border:1.5px solid var(--border);
+  border-radius:8px;padding:7px 10px;color:var(--tx);
+  font-family:'Inter',sans-serif;font-size:12px;outline:none;
+  transition:border-color .2s;
+}
+.task-time-inp:focus{border-color:var(--gold);}
+.ti-time{font-size:11px;color:var(--gold);margin-top:4px;font-family:'Inter',sans-serif;}
+.notif-bar{
+  position:fixed;top:70px;left:12px;right:12px;
+  background:linear-gradient(135deg,#1a2235,#111827);
+  border:1px solid var(--gold);border-radius:14px;
+  padding:14px 16px;z-index:500;
+  display:none;align-items:center;gap:12px;
+  box-shadow:0 8px 32px rgba(240,180,41,0.3);
+  animation:slideIn .3s ease;
+}
+.notif-bar.show{display:flex;}
+@keyframes slideIn{from{transform:translateY(-20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.notif-bar .notif-icon{font-size:28px;flex-shrink:0;}
+.notif-bar .notif-text{flex:1;}
+.notif-bar .notif-title{font-size:14px;font-weight:700;color:var(--gold);}
+.notif-bar .notif-body{font-size:12px;color:var(--muted);margin-top:2px;}
+.notif-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;flex-shrink:0;}
+
+/* ── IMAGE ── */
+#image-pnl{padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;}
+.img-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;}
+.img-card-title{font-size:14px;font-weight:700;color:var(--acc);}
+#txt2img-inp,#img2img-inp{
+  width:100%;background:var(--s2);border:1.5px solid var(--border);
+  border-radius:11px;padding:10px 12px;color:var(--tx);
+  font-family:'Inter',sans-serif;font-size:13px;
+  resize:none;outline:none;direction:ltr;
+}
+#txt2img-inp:focus,#img2img-inp:focus{border-color:var(--acc);}
+#txt2img-inp::placeholder,#img2img-inp::placeholder{color:var(--muted);}
+.img-gen-btn{
+  width:100%;padding:11px;border:none;border-radius:11px;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  color:#fff;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;
+}
+.img-gen-btn:disabled{opacity:.5;cursor:not-allowed;}
+.img-upload-area{
+  border:2px dashed var(--border);border-radius:11px;
+  padding:20px;text-align:center;cursor:pointer;
+  transition:border-color .2s;
+}
+.img-upload-area:hover{border-color:var(--acc);}
+.img-upload-area img{width:100%;border-radius:8px;max-height:150px;object-fit:cover;}
+.img-dl-btn{
+  width:100%;margin-top:10px;padding:10px;border:none;border-radius:11px;
+  background:linear-gradient(135deg,var(--gold),#f97316);
+  color:#fff;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;
+}
+
+/* ── SETTINGS ── */
+#settings-pnl{padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;}
+.set-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:14px;}
+.set-title{font-size:13px;color:var(--muted);margin-bottom:8px;}
+.set-inp{width:100%;background:var(--s2);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--tx);font-family:monospace;font-size:13px;outline:none;direction:ltr;}
+.set-inp:focus{border-color:var(--acc);}
+.set-btn{width:100%;margin-top:8px;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;}
+</style>
+
+
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').then(function(reg){
+    window._swReg = reg;
+    // Listen for messages from SW
+    navigator.serviceWorker.addEventListener('message', function(e){
+      if(e.data && e.data.type === 'REMINDER_SCHEDULED'){
+        console.log('Reminder scheduled! Delay:', Math.round(e.data.delay/60000), 'minutes');
+      }
+    });
+  }).catch(function(e){ console.log('SW failed:', e); });
+}
+</script>
+</head>
+<body>
+
+<!-- API SCREEN -->
+<div id="api-scr">
+  <img src="logo_192.png" alt="logo">
+  <h2>Welcome to EliteBot!</h2>
+  <p>Get your free Gemini API Key from:<br>
+  <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a></p>
+  <input id="api-inp" type="password" placeholder="Paste your AIza... key here">
+  <button id="api-btn">✅ Get Started</button>
+  <p style="font-size:11px;color:var(--muted);">🔒 Your key is stored only on your device</p>
+</div>
+
+<!-- OVERLAY -->
+<div id="overlay"></div>
+
+<!-- SIDE MENU -->
+<div id="side-menu">
+  <div class="menu-header">
+    <img src="logo_192.png" alt="logo">
+    <div>
+      <h2>EliteBot</h2>
+      <small>● Online</small>
+    </div>
+  </div>
+
+  <button class="menu-item active" id="mn-chat" onclick="sw('chat')">
+    <span>💬</span> Chat
+  </button>
+  <button class="menu-item" id="mn-tasks" onclick="sw('tasks')">
+    <span>✅</span> My Tasks
+  </button>
+  <button class="menu-item" id="mn-notes" onclick="sw('notes')">
+    <span>📝</span> Notes
+  </button>
+
+  <div class="menu-divider"></div>
+
+  <button class="menu-item" id="mn-image" onclick="sw('image')">
+    <span>🎨</span> Create Image
+  </button>
+
+  <div class="menu-divider"></div>
+
+  <button class="menu-item" id="mn-settings" onclick="sw('settings')">
+    <span>⚙️</span> Settings
+  </button>
+
+  <div class="menu-key" style="margin-top:auto;">
+    <p>🔑 Gemini Key is set</p>
+    <button id="chg-btn">Change</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="hd-left">
+    <div class="ava"><img src="logo_192.png" alt="logo"></div>
+    <div class="hd-info">
+      <h1>EliteBot</h1>
+      <small>● Online</small>
+    </div>
+  </div>
+  <button class="menu-btn" id="menu-btn">☰</button>
+</header>
+
+<main>
+  <!-- CHAT -->
+  <div class="pnl" id="chat-pnl" style="display:none;">
+    <div id="msgs"></div>
+    <div id="welcome">
+      <img src="logo_192.png" alt="logo">
+      <h2>How can I help you?</h2>
+      <p>Chat in any language</p>
+    </div>
+    <div id="typ">
+      <div class="mav"><img src="logo_192.png" alt="ai"></div>
+      <div class="dots"><span></span><span></span><span></span></div>
+    </div>
+    <div id="vbar">
+      <span>Voice reply:</span>
+      <button id="tts-btn">🔇 Off</button>
+    </div>
+    <div id="img-preview-chat"><img id="chat-img-thumb" src="" alt=""><span id="chat-img-name">Image attached</span><button id="remove-img-btn">✕</button></div>
+    <div id="inp-row">
+      <button id="mic-btn">🎤</button>
+      <button id="attach-btn" title="Attach Image">📎</button>
+      <input type="file" id="chat-img-input" accept="image/*" style="display:none;">
+      <textarea id="cinp" placeholder="Type here..." rows="1"></textarea>
+      <button id="send-btn">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- TASKS -->
+  <div class="pnl" id="tasks-pnl" style="display:none;">
+    <div class="sec-ttl">✅ My Tasks <span class="bdg" id="tcnt">0</span></div>
+    <div class="add-row">
+      <button class="add-btn" id="tadd-btn">+ Add</button>
+      <input class="add-inp" id="tinp" placeholder="Add new task...">
+    </div>
+    <div class="add-row" style="margin-top:-4px;">
+      <input type="time" id="tremind" class="add-inp" style="max-width:130px;color:var(--muted);" title="Set reminder time">
+      <span style="font-size:12px;color:var(--muted);white-space:nowrap;">⏰ Reminder (optional)</span>
+    </div>
+    <div class="task-time-row">
+      <span style="font-size:12px;color:var(--muted);">⏰ Remind at:</span>
+      <input type="time" class="task-time-inp" id="task-time" placeholder="Set time">
+      <input type="date" class="task-time-inp" id="task-date" style="max-width:140px;">
+    </div>
+    <div id="tlist"></div>
+  </div>
+
+  <!-- NOTES -->
+  <div class="pnl" id="notes-pnl" style="display:none;">
+    <div class="sec-ttl">📝 My Notes</div>
+    <input class="ntitle" id="ntitle" placeholder="Note title...">
+    <textarea id="nbody" placeholder="Write your note here..."></textarea>
+    <button class="sn-btn" id="sn-btn">💾 Save Note</button>
+    <div id="nlist"></div>
+  </div>
+
+
+  <!-- IMAGE -->
+  <div class="pnl" id="image-pnl" style="display:none;">
+    <div class="sec-ttl">🎨 Create Image</div>
+
+    <!-- Text to Image -->
+    <div class="img-card">
+      <div class="img-card-title">✍️ Text to Image</div>
+      <textarea id="txt2img-inp" placeholder="Describe karo kya banana hai... jaise: 'sunset over mountains, realistic'" rows="3"></textarea>
+      <button class="img-gen-btn" id="txt2img-btn">🎨 Create Image</button>
+    </div>
+
+    <!-- Image to Image -->
+    <div class="img-card">
+      <div class="img-card-title">🖼️ Image to Image</div>
+      <div class="img-upload-area" id="img-upload-area">
+        <input type="file" id="img-upload" accept="image/*" style="display:none;">
+        <div id="img-preview-wrap">
+          <p style="color:var(--muted);font-family:'Inter',sans-serif;font-size:13px;">Tap to upload an image</p>
+        </div>
+      </div>
+      <textarea id="img2img-inp" placeholder="Style describe karo... jaise: 'anime style, vibrant colors'" rows="2"></textarea>
+      <button class="img-gen-btn" id="img2img-btn">🔄 Image Change</button>
+    </div>
+
+    <!-- Text Overlay -->
+    <div class="img-card" id="overlay-card" style="display:none;">
+      <div class="img-card-title">✍️ Add Text on Image</div>
+      <textarea id="overlay-text" placeholder="Write text to add on image... (Urdu/English both work)" rows="3"></textarea>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <select id="overlay-pos" style="flex:1;background:var(--s2);border:1.5px solid var(--border);border-radius:8px;padding:8px;color:var(--tx);outline:none;">
+          <option value="top">Top</option>
+          <option value="center">Center</option>
+          <option value="bottom">Bottom</option>
+        </select>
+        <input type="color" id="overlay-color" value="#FFD700" style="width:44px;height:36px;border:none;border-radius:8px;cursor:pointer;background:none;">
+        <input type="range" id="overlay-size" min="16" max="64" value="32" style="flex:1;">
+      </div>
+      <button class="img-gen-btn" id="add-text-btn">✍️ Add Text</button>
+    </div>
+
+    <!-- Result -->
+    <div id="img-result" style="display:none;">
+      <div class="img-card-title">✅ Result</div>
+      <canvas id="img-canvas" style="width:100%;border-radius:12px;margin-top:8px;display:block;"></canvas>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="img-dl-btn" id="img-dl-btn" style="flex:1;">⬇️ Download</button>
+        <button class="img-gen-btn" id="add-text-toggle" style="flex:1;">✍️ Add Text</button>
+      </div>
+    </div>
+
+    <div id="img-loading" style="display:none;text-align:center;padding:20px;color:var(--muted);font-family:'Inter',sans-serif;">
+      🎨 Generating image... please wait
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="pnl" id="settings-pnl" style="display:none;">
+    <div class="sec-ttl">⚙️ Settings</div>
+    <div class="set-card">
+      <div class="set-title">🔑 Gemini API Key</div>
+      <input class="set-inp" id="set-key-inp" type="password" placeholder="AIza...">
+      <button class="set-btn" id="set-key-btn">Save</button>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+'use strict';
+
+document.addEventListener('DOMContentLoaded', function(){
+
+var tasks=JSON.parse(localStorage.getItem('ab_tasks')||'[]');
+var notes=JSON.parse(localStorage.getItem('ab_notes')||'[]');
+var history=[];
+var apiKey=localStorage.getItem('ab_key')||'YOUR_API_KEY_HERE';
+var ttsOn=false;
+var recOn=false;
+var recog=null;
+var chatStarted=false;
+
+/* ── API KEY ── */
+function initKey(){
+  if(apiKey.length>8){
+    document.getElementById('api-scr').style.display='none';
+    localStorage.setItem('ab_key', apiKey);
+  }
+}
+document.getElementById('api-btn').onclick=function(){
+  var v=document.getElementById('api-inp').value.trim();
+  if(v.length<8){alert('Please enter a valid API Key');return;}
+  apiKey=v;localStorage.setItem('ab_key',v);
+  document.getElementById('api-scr').style.display='none';
+};
+document.getElementById('chg-btn').onclick=function(){
+  sw('settings');closeMenu();
+  document.getElementById('set-key-inp').value=apiKey;
+};
+document.getElementById('set-key-btn').onclick=function(){
+  var v=document.getElementById('set-key-inp').value.trim();
+  if(v.length<8){alert('Please enter a valid API Key');return;}
+  apiKey=v;localStorage.setItem('ab_key',v);
+  alert('Key saved successfully!');
+};
+
+/* ── MENU ── */
+document.getElementById('menu-btn').onclick=function(){
+  document.getElementById('side-menu').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+};
+document.getElementById('overlay').onclick=closeMenu;
+function closeMenu(){
+  document.getElementById('side-menu').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+/* ── TABS ── */
+function sw(t){
+  ['chat','tasks','notes','settings','image'].forEach(function(x){
+    var pnl=document.getElementById(x+'-pnl');
+    var mn=document.getElementById('mn-'+x);
+    if(x===t){
+      pnl.style.display='flex';
+      pnl.style.flex='1';
+      if(mn)mn.classList.add('active');
+    } else {
+      pnl.style.display='none';
+      pnl.style.flex='';
+      if(mn)mn.classList.remove('active');
+    }
+  });
+  if(t==='tasks')renderTasks();
+  if(t==='notes')renderNotes();
+  closeMenu();
+}
+window.sw=sw;
+
+/* ── CHAT ── */
+function tm(){return new Date().toLocaleTimeString('ur-PK',{hour:'2-digit',minute:'2-digit'});}
+
+function showChat(){
+  if(!chatStarted){
+    chatStarted=true;
+    document.getElementById('welcome').style.display='none';
+    document.getElementById('msgs').style.display='flex';
+  }
+}
+
+function addMsg(txt,role){
+  showChat();
+  var m=document.getElementById('msgs');
+  var d=document.createElement('div');
+  d.className='msg '+(role==='user'?'u':'a');
+  var av=document.createElement('div');av.className='mav';
+  if(role==='ai'){
+    var img=document.createElement('img');img.src='logo_192.png';
+    av.appendChild(img);
+  } else {
+    av.textContent='👤';
+  }
+  var bb=document.createElement('div');bb.className='mbbl';bb.textContent=txt;
+  var ti=document.createElement('div');ti.className='mtime';ti.textContent=tm();
+  var inn=document.createElement('div');inn.appendChild(bb);inn.appendChild(ti);
+  d.appendChild(av);d.appendChild(inn);
+  m.appendChild(d);m.scrollTop=m.scrollHeight;
+}
+
+// init msgs div hidden
+document.getElementById('msgs').style.display='none';
+
+document.getElementById('send-btn').onclick=send;
+document.getElementById('cinp').addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}
+});
+document.getElementById('cinp').addEventListener('input',function(){
+  this.style.height='auto';
+  this.style.height=Math.min(this.scrollHeight,100)+'px';
+});
+
+async function send(){
+  var inp=document.getElementById('cinp');
+  var txt=inp.value.trim();
+  if(!txt)return;
+  if(!apiKey){alert('Please enter API Key first');return;}
+  inp.value='';inp.style.height='auto';
+  if(!chatImage) addMsg(txt,'user');
+  // Build user message parts
+  var userParts = [{text:txt}];
+  if(chatImage){
+    var b64 = chatImage.split(',')[1];
+    var mtype = chatImage.split(';')[0].split(':')[1];
+    userParts.push({inline_data:{mime_type:mtype,data:b64}});
+    // Show image in chat
+    showChat();
+    var imgDiv = document.createElement('div');
+    imgDiv.className = 'msg u';
+    imgDiv.innerHTML = '<div class="mav">👤</div><div><img src="'+chatImage+'" style="width:140px;border-radius:10px;margin-bottom:4px;display:block;"><div class="mbbl">'+txt+'</div><div class="mtime">'+tm()+'</div></div>';
+    document.getElementById('msgs').appendChild(imgDiv);
+    document.getElementById('msgs').scrollTop=99999;
+    // Reset image
+    chatImage = null;
+    document.getElementById('img-preview-chat').style.display='none';
+    document.getElementById('chat-img-input').value='';
+  }
+  // Save only text in history (not image) to prevent memory issues
+  history.push({role:'user',parts:[{text:txt}]});
+
+  var sb=document.getElementById('send-btn');
+  sb.disabled=true;
+  document.getElementById('typ').classList.add('on');
+  document.getElementById('msgs').scrollTop=99999;
+
+  try{
+    var tl=tasks.map(function(t){return '- '+t.t+(t.d?' (done)':' (pending)');}).join('\n')||'none';
+    var nl=notes.map(function(n){return '- '+n.title+': '+n.body.substring(0,50);}).join('\n')||'none';
+    var sys="You are EliteBot, a professional AI assistant. Always reply in the same language the user writes in. Be helpful, friendly and concise.\nUser Tasks:\n"+tl+"\nUser Notes:\n"+nl;
+
+    // Keep only last 10 messages to prevent slowdown
+    var recentHistory = history.slice(-10);
+    var msgs=[{role:'user',parts:[{text:sys}]},{role:'model',parts:[{text:'Got it!'}]}].concat(recentHistory);
+    // Add image to last message if present
+    if(userParts.length > 1){
+      msgs[msgs.length-1] = {role:'user', parts:userParts};
+    }
+
+    // Try gemini-2.5-flash first, fallback to gemini-2.0-flash
+    var models = ['gemini-2.0-flash'];
+    var data = null;
+    for(var mi=0; mi<models.length; mi++){
+      var res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+models[mi]+':generateContent',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-goog-api-key':apiKey},
+        body:JSON.stringify({contents:msgs})
+      });
+      data=await res.json();
+      if(!data.error) break;
+      if(mi===models.length-1) throw new Error(data.error.message);
+    }
+    var reply=(data.candidates&&data.candidates[0].content.parts[0].text)||'Sorry, no response received.';
+    history.push({role:'model',parts:[{text:reply}]});
+    document.getElementById('typ').classList.remove('on');
+    addMsg(reply,'ai');
+    if(ttsOn)speak(reply);
+  }catch(e){
+    document.getElementById('typ').classList.remove('on');
+    var errMsg = 'Something went wrong. Please try again.';
+    if(e.message && e.message.includes('quota')) errMsg = '⚠️ Daily limit reached! Please create a new API key from aistudio.google.com/apikey';
+    if(e.message && e.message.includes('API key')) errMsg = '🔑 Invalid API key. Please check your key in Settings.';
+    if(e.message && e.message.includes('network')) errMsg = '📶 Network error. Please check your internet.';
+    addMsg(errMsg,'ai');
+  }
+  sb.disabled=false;
+}
+
+/* ── TTS ── */
+document.getElementById('tts-btn').onclick=function(){
+  ttsOn=!ttsOn;
+  this.textContent=ttsOn?'🔊 On':'🔇 Off';
+  this.classList.toggle('on',ttsOn);
+  if(!ttsOn&&window.speechSynthesis)speechSynthesis.cancel();
+};
+function speak(txt){
+  if(!window.speechSynthesis)return;
+  speechSynthesis.cancel();
+  var u=new SpeechSynthesisUtterance(txt);
+  u.lang='ur-PK';u.rate=0.9;u.pitch=0.8;
+  var vs=speechSynthesis.getVoices();
+  var v=vs.find(function(x){return x.lang.startsWith('ur')&&!x.name.toLowerCase().includes('female');})||
+        vs.find(function(x){return x.lang.startsWith('ur');})||
+        vs.find(function(x){return !x.name.toLowerCase().includes('female');})||vs[0];
+  if(v)u.voice=v;
+  speechSynthesis.speak(u);
+}
+if(window.speechSynthesis)speechSynthesis.onvoiceschanged=function(){speechSynthesis.getVoices();};
+
+/* ── MIC ── */
+document.getElementById('mic-btn').onclick=toggleMic;
+function mkRec(){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR)return null;
+  var r=new SR();
+  r.lang='ur-PK';r.continuous=false;r.interimResults=false;
+  r.onresult=function(e){document.getElementById('cinp').value=e.results[0][0].transcript;stopRec();setTimeout(send,300);};
+  r.onerror=stopRec;r.onend=stopRec;
+  return r;
+}
+function toggleMic(){
+  if(recOn){stopRec();return;}
+  if(!navigator.mediaDevices){alert('Please use HTTPS for mic access');return;}
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){
+    s.getTracks().forEach(function(t){t.stop();});
+    if(!recog)recog=mkRec();
+    if(!recog){alert('Your browser does not support mic');return;}
+    recOn=true;
+    document.getElementById('mic-btn').classList.add('rec');
+    document.getElementById('mic-btn').textContent='⏹';
+    document.getElementById('cinp').placeholder='🎤 Listening...';
+    try{recog.start();}catch(e){stopRec();}
+  }).catch(function(e){alert('Mic permission dijiye: '+e.message);});
+}
+function stopRec(){
+  recOn=false;
+  document.getElementById('mic-btn').classList.remove('rec');
+  document.getElementById('mic-btn').textContent='🎤';
+  document.getElementById('cinp').placeholder='Type here...';
+  try{if(recog)recog.stop();}catch(e){}
+}
+
+/* ── TASKS ── */
+function savT(){localStorage.setItem('ab_tasks',JSON.stringify(tasks));}
+function renderTasks(){
+  var l=document.getElementById('tlist');
+  var p=tasks.filter(function(x){return !x.d;}).length;
+  document.getElementById('tcnt').textContent=p;
+  if(!tasks.length){l.innerHTML='<div class="empty"><div class="ei">✅</div>No tasks yet</div>';return;}
+  l.innerHTML='';
+  tasks.forEach(function(t,i){
+    var d=document.createElement('div');d.className='ti'+(t.d?' done':'');
+    var ck=document.createElement('button');ck.className='tck';ck.textContent=t.d?'✓':'';
+    ck.onclick=function(){tasks[i].d=!tasks[i].d;savT();renderTasks();};
+    var inner=document.createElement('div');inner.style.flex='1';
+    var tx=document.createElement('span');tx.className='tt';tx.textContent=t.t;
+    inner.appendChild(tx);
+    if(t.time){
+      var tm2=document.createElement('div');tm2.className='ti-time';
+      tm2.textContent='⏰ '+(t.date?t.date+' ':'')+t.time;
+      inner.appendChild(tm2);
+    }
+    var dl=document.createElement('button');dl.className='tdel';dl.textContent='✕';
+    dl.onclick=function(){tasks.splice(i,1);savT();renderTasks();};
+    d.appendChild(ck);d.appendChild(inner);d.appendChild(dl);l.appendChild(d);
+  });
+}
+document.getElementById('tadd-btn').onclick=addTask;
+document.getElementById('tinp').onkeydown=function(e){if(e.key==='Enter')addTask();};
+function addTask(){
+  var inp=document.getElementById('tinp');
+  var v=inp.value.trim();if(!v)return;
+  var time=document.getElementById('task-time').value;
+  var date=document.getElementById('task-date').value;
+  var task={t:v,d:false,id:Date.now()};
+  if(time) task.time=time;
+  if(date) task.date=date;
+  tasks.unshift(task);
+  savT();inp.value='';
+  document.getElementById('task-time').value='';
+  document.getElementById('task-date').value='';
+  renderTasks();
+  if(time) scheduleReminder(task);
+}
+
+function scheduleReminder(task){
+  var now=new Date();
+  var target=new Date();
+  var parts=task.time.split(':');
+  target.setHours(parseInt(parts[0]),parseInt(parts[1]),0,0);
+  if(task.date){
+    var d=new Date(task.date);
+    target.setFullYear(d.getFullYear(),d.getMonth(),d.getDate());
+  }
+  var diff=target-now;
+  if(diff<=0) diff+=24*60*60*1000; // next day if time passed
+  setTimeout(function(){
+    showNotification('⏰ Reminder!', task.t);
+    // Browser notification
+    if(Notification.permission==='granted'){
+      new Notification('EliteBot Reminder', {body:task.t, icon:'logo_192.png'});
+    }
+  }, diff);
+}
+
+function showNotification(title, body){
+  document.getElementById('notif-title').textContent=title;
+  document.getElementById('notif-body').textContent=body;
+  document.getElementById('notif-bar').classList.add('show');
+  // Auto hide after 10 seconds
+  setTimeout(function(){
+    document.getElementById('notif-bar').classList.remove('show');
+  }, 10000);
+}
+
+document.getElementById('notif-close').onclick=function(){
+  document.getElementById('notif-bar').classList.remove('show');
+};
+
+/* ── NOTES ── */
+function savN(){localStorage.setItem('ab_notes',JSON.stringify(notes));}
+function renderNotes(){
+  var l=document.getElementById('nlist');
+  if(!notes.length){l.innerHTML='<div class="empty"><div class="ei">📝</div>No notes yet</div>';return;}
+  l.innerHTML='';
+  notes.forEach(function(n,i){
+    var c=document.createElement('div');c.className='nc';
+    var dl=document.createElement('button');dl.className='nc-del';dl.textContent='✕';
+    dl.onclick=function(){notes.splice(i,1);savN();renderNotes();};
+    var tt=document.createElement('div');tt.className='nc-ttl';tt.textContent=n.title||'Untitled';
+    var bd=document.createElement('div');bd.className='nc-body';bd.textContent=n.body;
+    var dt=document.createElement('div');dt.className='nc-date';dt.textContent=n.date;
+    c.appendChild(dl);c.appendChild(tt);c.appendChild(bd);c.appendChild(dt);l.appendChild(c);
+  });
+}
+document.getElementById('sn-btn').onclick=saveNote;
+function saveNote(){
+  var tt=document.getElementById('ntitle').value.trim();
+  var bd=document.getElementById('nbody').value.trim();
+  if(!bd)return;
+  notes.unshift({title:tt||'Untitled',body:bd,date:new Date().toLocaleDateString('ur-PK'),id:Date.now()});
+  savN();document.getElementById('ntitle').value='';document.getElementById('nbody').value='';
+  renderNotes();
+}
+
+
+
+/* ── CHAT IMAGE ATTACH ── */
+var chatImage = null;
+
+document.getElementById('attach-btn').onclick = function(){
+  document.getElementById('chat-img-input').click();
+};
+
+document.getElementById('chat-img-input').onchange = function(e){
+  var file = e.target.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    chatImage = ev.target.result;
+    document.getElementById('chat-img-thumb').src = chatImage;
+    document.getElementById('img-preview-chat').style.display = 'flex';
+    document.getElementById('chat-img-name').textContent = file.name;
+  };
+  reader.readAsDataURL(file);
+};
+
+document.getElementById('remove-img-btn').onclick = function(){
+  chatImage = null;
+  document.getElementById('img-preview-chat').style.display = 'none';
+  document.getElementById('chat-img-input').value = '';
+};
+
+/* ── IMAGE GENERATION ── */
+var uploadedImg = null;
+
+// Upload area
+document.getElementById('img-upload-area').onclick = function(){
+  document.getElementById('img-upload').click();
+};
+document.getElementById('img-upload').onchange = function(e){
+  var file = e.target.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    uploadedImg = ev.target.result;
+    var wrap = document.getElementById('img-preview-wrap');
+    wrap.innerHTML = '<img src="'+uploadedImg+'" style="width:100%;border-radius:8px;max-height:150px;object-fit:cover;">';
+  };
+  reader.readAsDataURL(file);
+};
+
+// Text to Image
+document.getElementById('txt2img-btn').onclick = async function(){
+  var prompt = document.getElementById('txt2img-inp').value.trim();
+  if(!prompt){alert('Please write something first!');return;}
+  generateImage(prompt, null);
+};
+
+// Image to Image  
+document.getElementById('img2img-btn').onclick = async function(){
+  var prompt = document.getElementById('img2img-inp').value.trim();
+  if(!uploadedImg){alert('Please upload an image first!');return;}
+  if(!prompt){alert('Please describe the style!');return;}
+  generateImage(prompt, uploadedImg);
+};
+
+var currentImgUrl = null;
+
+async function generateImage(prompt, referenceImg){
+  document.getElementById('img-loading').style.display='block';
+  document.getElementById('img-result').style.display='none';
+  document.getElementById('overlay-card').style.display='none';
+  document.getElementById('txt2img-btn').disabled=true;
+  document.getElementById('img2img-btn').disabled=true;
+
+  try{
+    var encodedPrompt = encodeURIComponent(prompt);
+    var seed = Math.floor(Math.random()*999999);
+    currentImgUrl = 'https://image.pollinations.ai/prompt/'+encodedPrompt+'?width=768&height=768&seed='+seed+'&nologo=true';
+
+    var tmpImg = new Image();
+    tmpImg.crossOrigin = 'anonymous';
+    tmpImg.onload = function(){
+      var canvas = document.getElementById('img-canvas');
+      canvas.width = tmpImg.naturalWidth;
+      canvas.height = tmpImg.naturalHeight;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(tmpImg, 0, 0);
+      document.getElementById('img-loading').style.display='none';
+      document.getElementById('img-result').style.display='block';
+      document.getElementById('txt2img-btn').disabled=false;
+      document.getElementById('img2img-btn').disabled=false;
+    };
+    tmpImg.onerror = function(){
+      document.getElementById('img-loading').style.display='none';
+      alert('Image generation failed. Please try again.');
+      document.getElementById('txt2img-btn').disabled=false;
+      document.getElementById('img2img-btn').disabled=false;
+    };
+    tmpImg.src = currentImgUrl;
+
+    // Download
+    document.getElementById('img-dl-btn').onclick = function(){
+      var canvas = document.getElementById('img-canvas');
+      var a = document.createElement('a');
+      a.href = canvas.toDataURL('image/jpeg', 0.95);
+      a.download = 'elitebot-image.jpg';
+      a.click();
+    };
+
+    // Add text toggle
+    document.getElementById('add-text-toggle').onclick = function(){
+      document.getElementById('overlay-card').style.display='block';
+      document.getElementById('overlay-card').scrollIntoView({behavior:'smooth'});
+    };
+
+  } catch(e){
+    document.getElementById('img-loading').style.display='none';
+    alert('Error: '+e.message);
+    document.getElementById('txt2img-btn').disabled=false;
+    document.getElementById('img2img-btn').disabled=false;
+  }
+}
+
+// Add text on canvas
+document.getElementById('add-text-btn').onclick = function(){
+  var text = document.getElementById('overlay-text').value.trim();
+  if(!text){alert('Please write text first!');return;}
+  
+  var canvas = document.getElementById('img-canvas');
+  var ctx = canvas.getContext('2d');
+  var pos = document.getElementById('overlay-pos').value;
+  var color = document.getElementById('overlay-color').value;
+  var size = parseInt(document.getElementById('overlay-size').value);
+  
+  // Reload original image first
+  var tmpImg = new Image();
+  tmpImg.crossOrigin = 'anonymous';
+  tmpImg.onload = function(){
+    canvas.width = tmpImg.naturalWidth;
+    canvas.height = tmpImg.naturalHeight;
+    ctx.drawImage(tmpImg, 0, 0);
+    
+    var w = canvas.width;
+    var h = canvas.height;
+    
+    // Dark overlay strip
+    var stripH = size * 3;
+    var stripY = pos==='top' ? 0 : pos==='bottom' ? h-stripH : (h-stripH)/2;
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(0, stripY, w, stripH);
+    
+    // Text settings
+    ctx.font = 'bold '+size+'px "Noto Nastaliq Urdu", Arial, sans-serif';
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.direction = 'rtl';
+    
+    // Word wrap
+    var words = text.split(' ');
+    var lines = [];
+    var line = '';
+    var maxW = w - 60;
+    
+    for(var i=0;i<words.length;i++){
+      var test = line + words[i] + ' ';
+      if(ctx.measureText(test).width > maxW && line !== ''){
+        lines.push(line.trim());
+        line = words[i] + ' ';
+      } else {
+        line = test;
+      }
+    }
+    lines.push(line.trim());
+    
+    var totalH = lines.length * (size + 8);
+    var startY = stripY + (stripH - totalH)/2 + size;
+    
+    lines.forEach(function(l, i){
+      // Shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.8)';
+      ctx.fillText(l, w/2+2, startY + i*(size+8)+2);
+      // Text
+      ctx.fillStyle = color;
+      ctx.fillText(l, w/2, startY + i*(size+8));
+    });
+  };
+  tmpImg.src = currentImgUrl;
+};
+
+
+/* ── REMINDERS ── */
+var reminderIntervals = [];
+
+function scheduleReminder(task){
+  if(!task.remind) return;
+
+  // Send to Service Worker for background notification
+  function sendToSW(){
+    if(navigator.serviceWorker && navigator.serviceWorker.controller){
+      navigator.serviceWorker.controller.postMessage({
+        type: 'SCHEDULE_REMINDER',
+        task: task
+      });
+      console.log('Reminder sent to SW:', task.t, 'at', task.remind);
+    } else {
+      // Retry after 1 second if SW not ready
+      setTimeout(sendToSW, 1000);
+    }
+  }
+  sendToSW();
+
+  // Fallback when app is open/minimized
+  var checkReminder = setInterval(function(){
+    if(task.d){ clearInterval(checkReminder); return; }
+    var now = new Date();
+    var hhmm = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    if(hhmm === task.remind){
+      triggerReminder(task);
+      clearInterval(checkReminder);
+    }
+  }, 10000);
+
+  reminderIntervals.push(checkReminder);
+}
+
+function triggerReminder(task){
+  // Vibrate first
+  if(navigator.vibrate) navigator.vibrate([400, 200, 400, 200, 400]);
+
+  // Show in-app popup immediately
+  showReminderPopup(task.t);
+
+  // Browser notification
+  if('Notification' in window){
+    if(Notification.permission === 'granted'){
+      try{
+        new Notification('⏰ EliteBot Reminder', {
+          body: task.t,
+          icon: 'logo_192.png'
+        });
+      }catch(e){}
+    } else if(Notification.permission !== 'denied'){
+      Notification.requestPermission().then(function(perm){
+        if(perm === 'granted'){
+          new Notification('⏰ EliteBot Reminder', {body: task.t, icon: 'logo_192.png'});
+        }
+      });
+    }
+  }
+}
+
+function showReminderPopup(taskText){
+  var popup = document.getElementById('reminder-popup');
+  document.getElementById('reminder-text').textContent = taskText;
+  popup.style.display = 'flex';
+  // Auto hide after 10 seconds
+  setTimeout(function(){ popup.style.display='none'; }, 10000);
+}
+
+// Schedule all existing reminders on load
+function initReminders(){
+  if('Notification' in window && Notification.permission === 'default'){
+    Notification.requestPermission().then(function(){
+      scheduleAllReminders();
+    });
+  } else {
+    scheduleAllReminders();
+  }
+}
+
+function scheduleAllReminders(){
+  // Wait for service worker to be ready
+  if(navigator.serviceWorker){
+    navigator.serviceWorker.ready.then(function(){
+      tasks.forEach(function(t){
+        if(t.remind && !t.d) scheduleReminder(t);
+      });
+    });
+  } else {
+    tasks.forEach(function(t){
+      if(t.remind && !t.d) scheduleReminder(t);
+    });
+  }
+}
+
+/* ── INIT ── */
+initKey();renderTasks();renderNotes();sw("chat");
+
+// Request notification permission
+if('Notification' in window && Notification.permission==='default'){
+  Notification.requestPermission();
+}
+
+// Reschedule existing reminders
+tasks.forEach(function(t){
+  if(t.remind && !t.d) scheduleReminder(t);
+});
+
+}); // DOMContentLoaded end
+})();
+</script>
+
+<!-- NOTIFICATION BAR -->
+<div class="notif-bar" id="notif-bar">
+  <div class="notif-icon">⏰</div>
+  <div class="notif-text">
+    <div class="notif-title" id="notif-title">Reminder!</div>
+    <div class="notif-body" id="notif-body">Task reminder</div>
+  </div>
+  <button class="notif-close" id="notif-close">✕</button>
+</div>
+
+
+<!-- REMINDER POPUP -->
+<div id="reminder-popup" style="
+  display:none;position:fixed;inset:0;z-index:9999;
+  background:rgba(0,0,0,0.7);
+  align-items:center;justify-content:center;padding:20px;
+">
+  <div style="
+    background:#0e1420;border:2px solid #4f8ef7;
+    border-radius:20px;padding:28px;text-align:center;
+    max-width:320px;width:100%;
+    box-shadow:0 0 40px rgba(79,142,247,0.3);
+    animation:pop .3s ease;
+  ">
+    <div style="font-size:48px;margin-bottom:12px;">⏰</div>
+    <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px;color:#e8eaf6;">Reminder!</div>
+    <div id="reminder-text" style="font-size:14px;color:#6b7db3;margin-bottom:20px;line-height:1.6;"></div>
+    <button onclick="document.getElementById('reminder-popup').style.display='none'" style="
+      width:100%;padding:12px;border:none;border-radius:12px;
+      background:linear-gradient(135deg,#4f8ef7,#a78bfa);
+      color:#fff;font-size:15px;font-weight:700;cursor:pointer;
+      font-family:'DM Sans',sans-serif;
+    ">✅ Got it!</button>
+  </div>
+</div>
+
+</body>
+</html>
